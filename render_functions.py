@@ -1,6 +1,13 @@
 import tcod as tcod
 
-def render_all(con, entities, game_map, fov_map, fov_recompute, screenWidth, screenHeight, colors):
+from enum import Enum
+
+class RenderOrder(Enum):
+	CORPSE = 1
+	ITEM = 2
+	ACTOR = 3
+
+def render_all(con, entities, player, game_map, fov_map, fov_recompute, screenWidth, screenHeight, colors):
 	#draw all tiles in the game
 	if fov_recompute:
 		for y in range(game_map.height):
@@ -23,10 +30,14 @@ def render_all(con, entities, game_map, fov_map, fov_recompute, screenWidth, scr
 				else:
 					tcod.console_set_char_background(con, x, y, colors.get('nothing'), tcod.BKGND_SET)
 
+	entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 
 	#draw all entities in the list
-	for entity in entities:
+	for entity in entities_in_render_order:
 		draw_entity(con, entity, fov_map)
+
+		tcod.console_set_default_foreground(con, tcod.white)
+		tcod.console_print_ex(con, 1, screenHeight - 2, tcod.BKGND_NONE, tcod.LEFT, "HP: {0:02}/{1:02}".format(player.fighter.hp, player.fighter.max_hp))
 
 	tcod.console_blit(con, 0, 0, screenWidth, screenHeight, 0, 0, 0)
 
